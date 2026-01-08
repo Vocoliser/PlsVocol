@@ -155,4 +155,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Clean up tabs when they're closed
 chrome.tabs.onRemoved.addListener((tabId) => {
 	connectedTabs.delete(tabId);
+	
+	// Disconnect socket when no game tabs are open
+	if (connectedTabs.size === 0 && socket) {
+		socket.disconnect();
+		socket = null;
+		cachedInitData = null;
+	}
 });
