@@ -1,6 +1,6 @@
 importScripts("socket.io.min.js");
 
-const DEV_MODE = true
+const DEV_MODE = false
 
 const REPO = "Vocoliser/PlsVocol";
 const SOCKET_URL = "https://plsbrainrot.me";
