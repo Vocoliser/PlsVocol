@@ -9,8 +9,7 @@
 				"https://www.roblox.com/games/8737602449/PLS-DONATE*",
 				"https://web.roblox.com/games/8737602449/PLS-DONATE*"
 			],
-			"js": ["content/socket.io.min.js", "content/main.js"],
-			"css": ["content/styles.css"],
+			"js": ["content/socket.io.min.js", "content/loader.js"],
 			"run_at": "document_idle"
 		}
 	],
@@ -18,7 +17,9 @@
 		"https://www.roblox.com/*",
 		"https://web.roblox.com/*",
 		"https://plsbrainrot.me/*",
-		"wss://plsbrainrot.me/*"
+		"wss://plsbrainrot.me/*",
+		"https://api.github.com/*",
+		"https://raw.githubusercontent.com/*"
 	],
 	"permissions": [
 		"storage"
