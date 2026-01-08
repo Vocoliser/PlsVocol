@@ -276,36 +276,61 @@
 	}
 
 	function unlockAudio() {
-		if (!window.__COTTON_SOUND_URL__) return;
-		if (notificationAudio) return;
+		console.log("[Cotton] unlockAudio called, URL:", window.__COTTON_SOUND_URL__);
+		if (!window.__COTTON_SOUND_URL__) {
+			console.warn("[Cotton] No sound URL available");
+			return;
+		}
+		if (notificationAudio) {
+			console.log("[Cotton] Audio already created");
+			return;
+		}
 		
 		try {
 			// Create audio element and unlock it with user interaction
 			notificationAudio = new Audio(window.__COTTON_SOUND_URL__);
-			notificationAudio.volume = 0.5;
+			notificationAudio.volume = 1;
+			console.log("[Cotton] Audio element created");
 			// Play briefly to unlock, then reset
 			notificationAudio.play().then(() => {
+				console.log("[Cotton] Audio unlocked successfully");
 				notificationAudio.pause();
 				notificationAudio.currentTime = 0;
-			}).catch(() => {});
-		} catch (e) {}
+			}).catch((e) => {
+				console.error("[Cotton] Audio unlock failed:", e.message);
+			});
+		} catch (e) {
+			console.error("[Cotton] Audio creation error:", e.message);
+		}
 	}
 
 	function playAutoJoinSound() {
+		console.log("[Cotton] playAutoJoinSound called, muted:", CONFIG.autoJoinMuted);
 		if (CONFIG.autoJoinMuted) return;
 		
 		try {
 			if (notificationAudio) {
+				console.log("[Cotton] Playing notification audio");
 				notificationAudio.currentTime = 0;
-				notificationAudio.volume = 0.5;
-				notificationAudio.play().catch(() => {});
+				notificationAudio.volume = 1; // Max volume is 1.0
+				notificationAudio.play().then(() => {
+					console.log("[Cotton] Audio playing!");
+				}).catch((e) => {
+					console.error("[Cotton] Audio play failed:", e.message);
+				});
 			} else if (window.__COTTON_SOUND_URL__) {
-				// Fallback: create new audio if not unlocked
+				console.log("[Cotton] Creating new audio (not unlocked)");
 				const audio = new Audio(window.__COTTON_SOUND_URL__);
-				audio.volume = 0.5;
-				audio.play().catch(() => {});
+				audio.volume = 1;
+				audio.play().catch((e) => {
+					console.error("[Cotton] Fallback audio failed:", e.message);
+				});
+			} else {
+				console.warn("[Cotton] No audio available");
 			}
-		} catch (e) {}
+		} catch (e) {
+			console.error("[Cotton] playAutoJoinSound error:", e.message);
+		}
 	}
 
 	function joinServer(placeId, serverId) {
