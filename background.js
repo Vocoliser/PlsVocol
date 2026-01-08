@@ -7,13 +7,16 @@ const SOCKET_PATH = "/cotton/socket";
 let socket = null;
 let connectedTabs = new Set();
 
-async function getLatestCommitSha() {
+async function getLatestCommit() {
 	const response = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
 		headers: { "Accept": "application/vnd.github.v3+json" }
 	});
 	if (!response.ok) throw new Error("Failed to get commit");
 	const data = await response.json();
-	return data.sha;
+	return {
+		sha: data.sha,
+		date: data.commit.author.date
+	};
 }
 
 async function fetchRemote(url) {
@@ -72,8 +75,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		
 		(async () => {
 			try {
-				const sha = await getLatestCommitSha();
-				const baseUrl = `https://raw.githubusercontent.com/${REPO}/${sha}/remote`;
+				const commit = await getLatestCommit();
+				const baseUrl = `https://raw.githubusercontent.com/${REPO}/${commit.sha}/remote`;
 				
 				const [cssContent, jsContent] = await Promise.all([
 					fetchRemote(`${baseUrl}/styles.css`),
@@ -90,9 +93,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				await chrome.scripting.executeScript({
 					target: { tabId: sender.tab.id },
 					world: "MAIN",
-					args: [sha],
-					func: (sha) => {
-						window.__COTTON_VERSION__ = sha;
+					args: [commit.sha, commit.date],
+					func: (sha, date) => {
+						window.__COTTON_VERSION__ = { sha, date };
 					}
 				});
 				
@@ -117,7 +120,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 					chrome.tabs.sendMessage(sender.tab.id, { type: "socket_connect", id: socket.id });
 				}
 				
-				sendResponse({ success: true, version: sha.substring(0, 7) });
+				sendResponse({ success: true, version: commit.sha.substring(0, 7) });
 			} catch (error) {
 				sendResponse({ success: false, error: error.message });
 			}

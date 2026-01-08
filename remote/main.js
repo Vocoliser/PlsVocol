@@ -431,10 +431,11 @@
 		const versionEl = document.getElementById("pls-version-info");
 		if (!versionEl) return;
 		
-		const sha = window.__COTTON_VERSION__;
-		if (sha) {
-			const shortSha = sha.substring(0, 7);
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a>`;
+		const version = window.__COTTON_VERSION__;
+		if (version && version.sha) {
+			const shortSha = version.sha.substring(0, 7);
+			const date = new Date(version.date).toLocaleDateString();
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
 		} else {
 			versionEl.textContent = "Version unavailable";
 		}
