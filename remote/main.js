@@ -25,8 +25,7 @@
 	let foundEntries = [];
 	let mergedDonations = [];
 	let lastAutoJoinEntry = null;
-	let audioContext = null;
-	let audioUnlocked = false;
+	let notificationAudio = null;
 
 	function loadSettings() {
 		try {
@@ -277,28 +276,35 @@
 	}
 
 	function unlockAudio() {
-		if (audioUnlocked) return;
 		if (!window.__COTTON_SOUND_URL__) return;
+		if (notificationAudio) return;
 		
 		try {
-			// Create and play a silent sound to unlock audio
-			const audio = new Audio(window.__COTTON_SOUND_URL__);
-			audio.volume = 0;
-			audio.play().then(() => {
-				audio.pause();
-				audioUnlocked = true;
+			// Create audio element and unlock it with user interaction
+			notificationAudio = new Audio(window.__COTTON_SOUND_URL__);
+			notificationAudio.volume = 0.5;
+			// Play briefly to unlock, then reset
+			notificationAudio.play().then(() => {
+				notificationAudio.pause();
+				notificationAudio.currentTime = 0;
 			}).catch(() => {});
 		} catch (e) {}
 	}
 
 	function playAutoJoinSound() {
 		if (CONFIG.autoJoinMuted) return;
-		if (!window.__COTTON_SOUND_URL__) return;
 		
 		try {
-			const audio = new Audio(window.__COTTON_SOUND_URL__);
-			audio.volume = 0.5;
-			audio.play().catch(() => {});
+			if (notificationAudio) {
+				notificationAudio.currentTime = 0;
+				notificationAudio.volume = 0.5;
+				notificationAudio.play().catch(() => {});
+			} else if (window.__COTTON_SOUND_URL__) {
+				// Fallback: create new audio if not unlocked
+				const audio = new Audio(window.__COTTON_SOUND_URL__);
+				audio.volume = 0.5;
+				audio.play().catch(() => {});
+			}
 		} catch (e) {}
 	}
 
