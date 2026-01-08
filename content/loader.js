@@ -1,71 +1,19 @@
 (() => {
 	"use strict";
 
-	const REPO = "Vocoliser/PlsVocol";
-
-	async function getLatestCommitSha() {
-		const response = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
-			headers: { "Accept": "application/vnd.github.v3+json" }
-		});
-		if (!response.ok) throw new Error("Failed to get commit");
-		const data = await response.json();
-		return data.sha;
-	}
-
-	async function fetchRemote(url, type) {
-		const cacheKey = `Cotton_cache_${type}`;
-		
-		try {
-			const response = await fetch(url);
-			
-			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
+	function loadRemoteCode() {
+		chrome.runtime.sendMessage({ type: "loadRemoteCode" }, (response) => {
+			if (chrome.runtime.lastError) {
+				console.error("[Cotton Loader] Runtime error:", chrome.runtime.lastError.message);
+				showLoadError("Extension error: " + chrome.runtime.lastError.message);
+				return;
 			}
 			
-			const content = await response.text();
-			
-			try {
-				localStorage.setItem(cacheKey, content);
-			} catch (e) {}
-			
-			return content;
-		} catch (error) {
-			const cached = localStorage.getItem(cacheKey);
-			if (cached) {
-				return cached;
+			if (!response || !response.success) {
+				console.error("[Cotton Loader] Failed:", response?.error);
+				showLoadError(response?.error || "Unknown error");
 			}
-			throw error;
-		}
-	}
-
-	async function injectCSS(cssContent) {
-		return new Promise((resolve) => {
-			chrome.runtime.sendMessage({ type: "injectCSS", css: cssContent }, resolve);
 		});
-	}
-
-	async function injectJS(jsContent) {
-		return new Promise((resolve) => {
-			chrome.runtime.sendMessage({ type: "executeCode", code: jsContent }, resolve);
-		});
-	}
-
-	async function loadRemoteCode() {
-		try {
-			const sha = await getLatestCommitSha();
-			const baseUrl = `https://raw.githubusercontent.com/${REPO}/${sha}/remote`;
-			
-			const [cssContent, jsContent] = await Promise.all([
-				fetchRemote(`${baseUrl}/styles.css`, "css"),
-				fetchRemote(`${baseUrl}/main.js`, "js")
-			]);
-			
-			await injectCSS(cssContent);
-			await injectJS(jsContent);
-		} catch (error) {
-			console.error("[Cotton Loader] Failed to load remote code:", error);
-			showLoadError(error.message);
-		}
 	}
 
 	function showLoadError(message) {

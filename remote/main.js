@@ -436,23 +436,15 @@
 		fetchGitHubVersion();
 	}
 
-	async function fetchGitHubVersion() {
+	function fetchGitHubVersion() {
 		const versionEl = document.getElementById("pls-version-info");
 		if (!versionEl) return;
 		
-		try {
-			const response = await fetch("https://api.github.com/repos/Vocoliser/PlsVocol/commits/main", {
-				headers: { "Accept": "application/vnd.github.v3+json" }
-			});
-			
-			if (!response.ok) throw new Error("Failed to fetch");
-			
-			const data = await response.json();
-			const shortSha = data.sha.substring(0, 7);
-			const date = new Date(data.commit.author.date).toLocaleDateString();
-			
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
-		} catch (e) {
+		const sha = window.__COTTON_VERSION__;
+		if (sha) {
+			const shortSha = sha.substring(0, 7);
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a>`;
+		} else {
 			versionEl.textContent = "Version unavailable";
 		}
 	}
