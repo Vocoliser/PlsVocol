@@ -365,6 +365,14 @@
 					break;
 			}
 		});
+		
+		// Listen for version check results
+		window.addEventListener("cotton_version_result", (e) => {
+			const latestSha = e.detail.sha;
+			if (latestSha && currentVersionSha && latestSha !== currentVersionSha && latestSha !== "LOCAL") {
+				showUpdateAvailable();
+			}
+		});
 	}
 
 	function lockPanelWidths() {
@@ -526,12 +534,15 @@
 		`;
 	}
 
+	let currentVersionSha = null;
+	
 	function fetchGitHubVersion() {
 		const versionEl = document.getElementById("pls-version-info");
 		if (!versionEl) return;
 		
 		const version = window.__COTTON_VERSION__;
 		if (version && version.sha) {
+			currentVersionSha = version.sha;
 			if (version.sha === "LOCAL") {
 				versionEl.textContent = "LOCAL";
 			} else {
@@ -539,9 +550,43 @@
 				const date = new Date(version.date).toLocaleDateString();
 				versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
 			}
+			// Start version check interval (every 1 minute)
+			startVersionChecker();
 		} else {
 			versionEl.textContent = "Version unavailable";
 		}
+	}
+	
+	function startVersionChecker() {
+		if (currentVersionSha === "LOCAL") return;
+		
+		setInterval(() => {
+			checkForUpdate();
+		}, 60 * 1000); // 1 minute
+	}
+	
+	function checkForUpdate() {
+		if (!currentVersionSha || currentVersionSha === "LOCAL") return;
+		
+		// Send message to background script to check latest version
+		window.dispatchEvent(new CustomEvent("cotton_check_version"));
+	}
+	
+	function showUpdateAvailable() {
+		const versionEl = document.getElementById("pls-version-info");
+		if (!versionEl) return;
+		
+		// Don't add again if already showing
+		if (versionEl.querySelector(".pls-update-notice")) return;
+		
+		const updateNotice = document.createElement("span");
+		updateNotice.className = "pls-update-notice";
+		updateNotice.textContent = " • Refresh to update";
+		updateNotice.style.cssText = "color: #f59e0b; cursor: pointer; font-weight: 600;";
+		updateNotice.addEventListener("click", () => {
+			window.location.reload();
+		});
+		versionEl.appendChild(updateNotice);
 	}
 
 	function initSettingsListeners() {

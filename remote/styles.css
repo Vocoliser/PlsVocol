@@ -413,6 +413,22 @@
 	text-decoration: underline !important;
 }
 
+.pls-update-notice {
+	color: #f59e0b;
+	font-weight: 600;
+	cursor: pointer;
+	animation: pulse-update 2s infinite;
+}
+
+.pls-update-notice:hover {
+	text-decoration: underline;
+}
+
+@keyframes pulse-update {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.6; }
+}
+
 .pls-panel-title {
 	font-size: 14px;
 	font-weight: 700;
@@ -971,6 +987,10 @@
 	.pls-version-info {
 		border-top-color: rgba(255,255,255,0.08);
 		color: #6b7280;
+	}
+	
+	.pls-update-notice {
+		color: #fbbf24;
 	}
 	
 	#pls-donate-helper-panel .rbx-panel-heading { background: #171a20; }

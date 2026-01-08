@@ -74,6 +74,22 @@ function broadcastToTabs(message) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	if (message.type === "checkVersion") {
+		(async () => {
+			try {
+				if (DEV_MODE) {
+					sendResponse({ success: true, sha: "LOCAL" });
+					return;
+				}
+				const commit = await getLatestCommit();
+				sendResponse({ success: true, sha: commit.sha });
+			} catch (error) {
+				sendResponse({ success: false, error: error.message });
+			}
+		})();
+		return true;
+	}
+	
 	if (message.type === "loadRemoteCode" && sender.tab) {
 		connectedTabs.add(sender.tab.id);
 		

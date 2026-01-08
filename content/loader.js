@@ -8,6 +8,18 @@
 		}
 	});
 
+	// Listen for version check requests from page and relay to background
+	window.addEventListener("cotton_check_version", () => {
+		chrome.runtime.sendMessage({ type: "checkVersion" }, (response) => {
+			if (chrome.runtime.lastError) return;
+			if (response && response.success) {
+				window.dispatchEvent(new CustomEvent("cotton_version_result", { 
+					detail: { sha: response.sha } 
+				}));
+			}
+		});
+	});
+
 	function loadRemoteCode() {
 		chrome.runtime.sendMessage({ type: "loadRemoteCode" }, (response) => {
 			if (chrome.runtime.lastError) {
