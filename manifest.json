@@ -2,15 +2,15 @@
 	"manifest_version": 3,
 	"name": "Pls i want pick cotton",
 	"description": "Pls i want pick cotton",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"content_scripts": [
 		{
 			"matches": [
 				"https://www.roblox.com/games/8737602449/PLS-DONATE*",
 				"https://web.roblox.com/games/8737602449/PLS-DONATE*"
 			],
-			"js": ["content/socket.io.min.js", "content/main.js"],
-			"css": ["content/styles.css"],
+			"js": ["content/socket.io.min.js", "content/loader.js"],
+			"css": [],
 			"run_at": "document_idle"
 		}
 	],
@@ -18,7 +18,8 @@
 		"https://www.roblox.com/*",
 		"https://web.roblox.com/*",
 		"https://plsbrainrot.me/*",
-		"wss://plsbrainrot.me/*"
+		"wss://plsbrainrot.me/*",
+		"https://raw.githubusercontent.com/*"
 	],
 	"permissions": [
 		"storage"
