@@ -10,7 +10,7 @@
 		reconnectAttempts: 5,
 		reconnectDelay: 3000,
 		autoJoinEnabled: false,
-		autoJoinMinRobux: 0,
+		autoJoinMinRobux: 1000,
 		autoJoinGameFilters: ["Main"],
 		autoJoinSkipFull: false,
 	};
@@ -451,7 +451,7 @@
 			const shortSha = data.sha.substring(0, 7);
 			const date = new Date(data.commit.author.date).toLocaleDateString();
 			
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • fucking test ${date}`;
 		} catch (e) {
 			versionEl.textContent = "Version unavailable";
 		}

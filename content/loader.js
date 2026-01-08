@@ -1,18 +1,22 @@
 (() => {
 	"use strict";
 
-	const REMOTE_BASE_URL = "https://raw.githubusercontent.com/Vocoliser/PlsVocol/main/remote";
-	
-	const REMOTE_FILES = {
-		js: `${REMOTE_BASE_URL}/main.js`,
-		css: `${REMOTE_BASE_URL}/styles.css`
-	};
+	const REPO = "Vocoliser/PlsVocol";
+
+	async function getLatestCommitSha() {
+		const response = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
+			headers: { "Accept": "application/vnd.github.v3+json" }
+		});
+		if (!response.ok) throw new Error("Failed to get commit");
+		const data = await response.json();
+		return data.sha;
+	}
 
 	async function fetchRemote(url, type) {
 		const cacheKey = `Cotton_cache_${type}`;
 		
 		try {
-			const response = await fetch(url + `?t=${Date.now()}`);
+			const response = await fetch(url);
 			
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`);
@@ -52,9 +56,12 @@
 
 	async function loadRemoteCode() {
 		try {
+			const sha = await getLatestCommitSha();
+			const baseUrl = `https://raw.githubusercontent.com/${REPO}/${sha}/remote`;
+			
 			const [cssContent, jsContent] = await Promise.all([
-				fetchRemote(REMOTE_FILES.css, "css"),
-				fetchRemote(REMOTE_FILES.js, "js")
+				fetchRemote(`${baseUrl}/styles.css`, "css"),
+				fetchRemote(`${baseUrl}/main.js`, "js")
 			]);
 			
 			await injectCSS(cssContent);
