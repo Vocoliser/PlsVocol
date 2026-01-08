@@ -1,6 +1,6 @@
 importScripts("socket.io.min.js");
 
-const DEV_MODE = false;
+const DEV_MODE = true
 
 const REPO = "Vocoliser/PlsVocol";
 const SOCKET_URL = "https://plsbrainrot.me";
@@ -87,7 +87,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 						fetchRemote(chrome.runtime.getURL("remote/styles.css")),
 						fetchRemote(chrome.runtime.getURL("remote/main.js"))
 					]);
-					versionInfo = { sha: "dev", date: new Date().toISOString() };
+					versionInfo = { sha: "LOCAL", date: null };
 				} else {
 					// Load from GitHub
 					const commit = await getLatestCommit();

@@ -422,9 +422,13 @@
 		
 		const version = window.__COTTON_VERSION__;
 		if (version && version.sha) {
-			const shortSha = version.sha.substring(0, 7);
-			const date = new Date(version.date).toLocaleDateString();
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
+			if (version.sha === "LOCAL") {
+				versionEl.textContent = "LOCAL";
+			} else {
+				const shortSha = version.sha.substring(0, 7);
+				const date = new Date(version.date).toLocaleDateString();
+				versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
+			}
 		} else {
 			versionEl.textContent = "Version unavailable";
 		}
