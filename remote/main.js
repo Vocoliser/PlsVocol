@@ -230,7 +230,7 @@
 		if (!playerAmount || playerAmount === "undefined/undefined") {
 			return false;
 		}
-		 
+		
 		const parts = playerAmount.split('/');
 		if (parts.length !== 2) return false;
 		
