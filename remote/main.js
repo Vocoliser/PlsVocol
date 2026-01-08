@@ -25,6 +25,8 @@
 	let foundEntries = [];
 	let mergedDonations = [];
 	let lastAutoJoinEntry = null;
+	let audioContext = null;
+	let audioUnlocked = false;
 
 	function loadSettings() {
 		try {
@@ -274,9 +276,25 @@
 		joinServer(entry.placeId, entry.serverId);
 	}
 
+	function unlockAudio() {
+		if (audioUnlocked) return;
+		if (!window.__COTTON_SOUND_URL__) return;
+		
+		try {
+			// Create and play a silent sound to unlock audio
+			const audio = new Audio(window.__COTTON_SOUND_URL__);
+			audio.volume = 0;
+			audio.play().then(() => {
+				audio.pause();
+				audioUnlocked = true;
+			}).catch(() => {});
+		} catch (e) {}
+	}
+
 	function playAutoJoinSound() {
 		if (CONFIG.autoJoinMuted) return;
 		if (!window.__COTTON_SOUND_URL__) return;
+		
 		try {
 			const audio = new Audio(window.__COTTON_SOUND_URL__);
 			audio.volume = 0.5;
@@ -529,6 +547,11 @@
 				CONFIG.autoJoinEnabled = !CONFIG.autoJoinEnabled;
 				saveSettings();
 				updateAutoJoinButton();
+				
+				// Unlock audio on user interaction so notification can play later
+				if (CONFIG.autoJoinEnabled) {
+					unlockAudio();
+				}
 			});
 		}
 
