@@ -472,10 +472,10 @@
 		if (btn) {
 			if (CONFIG.autoJoinEnabled) {
 				btn.classList.add("pls-autojoin-active");
-				btn.textContent = "🟢 AUTO JOIN ON";
+				btn.textContent = "AUTO JOIN ON";
 			} else {
 				btn.classList.remove("pls-autojoin-active");
-				btn.textContent = "⚪ AUTO JOIN OFF";
+				btn.textContent = "AUTO JOIN OFF";
 			}
 		}
 	}
