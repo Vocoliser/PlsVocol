@@ -133,15 +133,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				// Initialize socket connection
 				initSocket();
 				
-				// Send current socket state and cached data to new tab
-				if (socket && socket.connected) {
-					chrome.tabs.sendMessage(sender.tab.id, { type: "socket_connect", id: socket.id });
-					if (cachedInitData) {
-						chrome.tabs.sendMessage(sender.tab.id, { type: "socket_init", data: cachedInitData });
-					}
-				}
-				
 				sendResponse({ success: true, version: versionInfo.sha.substring(0, 7) });
+				
+				// Send current socket state and cached data to new tab after JS has initialized
+				setTimeout(() => {
+					if (socket && socket.connected) {
+						chrome.tabs.sendMessage(sender.tab.id, { type: "socket_connect", id: socket.id }).catch(() => {});
+						if (cachedInitData) {
+							chrome.tabs.sendMessage(sender.tab.id, { type: "socket_init", data: cachedInitData }).catch(() => {});
+						}
+					}
+				}, 500);
 			} catch (error) {
 				sendResponse({ success: false, error: error.message });
 			}
