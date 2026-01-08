@@ -451,7 +451,7 @@
 			const shortSha = data.sha.substring(0, 7);
 			const date = new Date(data.commit.author.date).toLocaleDateString();
 			
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • fucking test ${date}`;
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
 		} catch (e) {
 			versionEl.textContent = "Version unavailable";
 		}
@@ -499,10 +499,10 @@
 		if (btn) {
 			if (CONFIG.autoJoinEnabled) {
 				btn.classList.add("pls-autojoin-active");
-				btn.textContent = "AUTO JOIN ON";
+				btn.textContent = "🟢 AUTO JOIN ON";
 			} else {
 				btn.classList.remove("pls-autojoin-active");
-				btn.textContent = "AUTO JOIN OFF";
+				btn.textContent = "⚪ AUTO JOIN OFF";
 			}
 		}
 	}

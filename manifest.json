@@ -3,6 +3,9 @@
 	"name": "Pls i want pick cotton",
 	"description": "Pls i want pick cotton",
 	"version": "0.2.0",
+	"background": {
+		"service_worker": "background.js"
+	},
 	"content_scripts": [
 		{
 			"matches": [
@@ -22,8 +25,7 @@
 		"https://raw.githubusercontent.com/*"
 	],
 	"permissions": [
-		"storage"
+		"storage",
+		"scripting"
 	]
 }
-
-

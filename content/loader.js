@@ -39,20 +39,15 @@
 	}
 
 	async function injectCSS(cssContent) {
-		const style = document.createElement("style");
-		style.id = "Cotton-styles";
-		style.textContent = cssContent;
-		document.head.appendChild(style);
+		return new Promise((resolve) => {
+			chrome.runtime.sendMessage({ type: "injectCSS", css: cssContent }, resolve);
+		});
 	}
 
 	async function injectJS(jsContent) {
-		const blob = new Blob([jsContent], { type: "application/javascript" });
-		const url = URL.createObjectURL(blob);
-		const script = document.createElement("script");
-		script.id = "Cotton-script";
-		script.src = url;
-		script.onload = () => URL.revokeObjectURL(url);
-		document.head.appendChild(script);
+		return new Promise((resolve) => {
+			chrome.runtime.sendMessage({ type: "executeCode", code: jsContent }, resolve);
+		});
 	}
 
 	async function loadRemoteCode() {
