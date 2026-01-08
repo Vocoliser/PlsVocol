@@ -451,7 +451,7 @@
 			const shortSha = data.sha.substring(0, 7);
 			const date = new Date(data.commit.author.date).toLocaleDateString();
 			
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • fucking test 1 ${date}`;
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
 		} catch (e) {
 			versionEl.textContent = "Version unavailable";
 		}
