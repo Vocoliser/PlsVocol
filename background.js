@@ -155,11 +155,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Clean up tabs when they're closed
 chrome.tabs.onRemoved.addListener((tabId) => {
 	connectedTabs.delete(tabId);
-	
-	// Disconnect socket when no game tabs are open
+	cleanupIfNoTabs();
+});
+
+// Clean up tabs when they navigate away from game page
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	if (connectedTabs.has(tabId) && changeInfo.url) {
+		const isGamePage = tab.url && (
+			tab.url.includes("roblox.com/games/8737602449") ||
+			tab.url.includes("web.roblox.com/games/8737602449")
+		);
+		if (!isGamePage) {
+			connectedTabs.delete(tabId);
+			cleanupIfNoTabs();
+		}
+	}
+});
+
+function cleanupIfNoTabs() {
 	if (connectedTabs.size === 0 && socket) {
 		socket.disconnect();
 		socket = null;
 		cachedInitData = null;
 	}
-});
+}

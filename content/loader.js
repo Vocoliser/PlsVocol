@@ -39,13 +39,21 @@
 			z-index: 2147483000;
 			max-width: 300px;
 		`;
-		errorDiv.innerHTML = `
-			<strong>Cotton Load Error</strong><br>
-			${message}<br>
-			<small>Check console for details</small>
-		`;
-		document.body.appendChild(errorDiv);
 		
+		const title = document.createElement("strong");
+		title.textContent = "Cotton Load Error";
+		const msgText = document.createElement("span");
+		msgText.textContent = message;
+		const hint = document.createElement("small");
+		hint.textContent = "Check console for details";
+		
+		errorDiv.appendChild(title);
+		errorDiv.appendChild(document.createElement("br"));
+		errorDiv.appendChild(msgText);
+		errorDiv.appendChild(document.createElement("br"));
+		errorDiv.appendChild(hint);
+		
+		document.body.appendChild(errorDiv);
 		setTimeout(() => errorDiv.remove(), 10000);
 	}
 
