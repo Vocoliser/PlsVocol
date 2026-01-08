@@ -23,6 +23,7 @@
 	let reachEntries = [];
 	let foundEntries = [];
 	let mergedDonations = [];
+	let lastAutoJoinEntry = null;
 
 	function loadSettings() {
 		try {
@@ -262,6 +263,9 @@
 		saveSettings();
 		updateAutoJoinButton();
 		
+		lastAutoJoinEntry = entry;
+		renderLastJoinPanel();
+		
 		joinServer(entry.placeId, entry.serverId);
 	}
 
@@ -414,6 +418,68 @@
 		document.body.appendChild(panel);
 		initSettingsListeners();
 		fetchGitHubVersion();
+	}
+
+	function createLastJoinPanel() {
+		if (document.getElementById("pls-last-join-panel")) return;
+
+		const panel = document.createElement("aside");
+		panel.id = "pls-last-join-panel";
+		panel.setAttribute("role", "complementary");
+
+		panel.innerHTML = `
+			<div class="pls-panel-header">
+				<div class="pls-panel-title">
+					<span class="pls-last-join-icon">🎯</span>
+					Last Auto Join
+				</div>
+			</div>
+			<div id="pls-last-join-content" class="pls-panel-content">
+				<div class="pls-empty">No auto joins yet</div>
+			</div>
+		`;
+
+		document.body.appendChild(panel);
+	}
+
+	function renderLastJoinPanel() {
+		const container = document.getElementById("pls-last-join-content");
+		if (!container) return;
+
+		if (!lastAutoJoinEntry) {
+			container.innerHTML = '<div class="pls-empty">No auto joins yet</div>';
+			return;
+		}
+
+		const entry = lastAutoJoinEntry;
+		const timeAgo = formatTimeAgo(entry.timestamp);
+		const gameBadge = getGameBadge(entry.placeId);
+		const donatorUsername = entry.donator.username.replace(/^@+/, '');
+		const donatorDisplay = entry.donator.displayName;
+		const receiverUsername = entry.receiver.username.replace(/^@+/, '');
+
+		container.innerHTML = `
+			<div class="pls-last-join-card">
+				<div class="pls-last-join-info">
+					<div class="pls-last-join-donator">
+						<img src="${escapeHtml(entry.donator.pfp)}" alt="Avatar" class="pls-last-join-avatar" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-D6AA08590AF634B30030087F39AF1479-Png/150/150/AvatarHeadshot/Png/noFilter'" />
+						<div>
+							<div class="pls-last-join-name">@${escapeHtml(donatorUsername)}</div>
+							<div class="pls-last-join-display">${escapeHtml(donatorDisplay)}</div>
+						</div>
+					</div>
+					<div class="pls-last-join-amount">
+						<span class="icon-robux-16x16"></span>
+						<span class="text-robux">${formatRobux(entry.donatedAmount)}</span>
+					</div>
+				</div>
+				<div class="pls-last-join-footer">
+					<span>${timeAgo}</span>
+					${gameBadge}
+					<span class="pls-server-id">${entry.serverId.substring(0, 8)}</span>
+				</div>
+			</div>
+		`;
 	}
 
 	function fetchGitHubVersion() {
@@ -671,6 +737,7 @@
 
 	function placeSettingsPanel(nextToSelector) {
 		const settingsPanel = document.getElementById("pls-settings-panel");
+		const lastJoinPanel = document.getElementById("pls-last-join-panel");
 		const donationsPanel = document.getElementById("pls-donate-helper-panel");
 		if (!settingsPanel || !donationsPanel) return;
 
@@ -679,12 +746,22 @@
 		function repositionSettings() {
 			settingsPanel.style.left = donationsPanel.style.left;
 			settingsPanel.style.right = "auto";
-			
 			settingsPanel.style.top = "56px";
 			settingsPanel.style.display = "block";
 			
 			const settingsHeight = settingsPanel.offsetHeight || 120;
-			donationsPanel.style.top = (56 + settingsHeight + gap) + "px";
+			let nextTop = 56 + settingsHeight + gap;
+			
+			if (lastJoinPanel) {
+				lastJoinPanel.style.left = donationsPanel.style.left;
+				lastJoinPanel.style.right = "auto";
+				lastJoinPanel.style.top = nextTop + "px";
+				lastJoinPanel.style.display = "block";
+				const lastJoinHeight = lastJoinPanel.offsetHeight || 80;
+				nextTop += lastJoinHeight + gap;
+			}
+			
+			donationsPanel.style.top = nextTop + "px";
 		}
 
 		setTimeout(repositionSettings, 50);
@@ -784,6 +861,7 @@
 		loadSettings();
 
 		createSettingsPanel();
+		createLastJoinPanel();
 		createDonationsPanel();
 		createReachPanel();
 
@@ -815,17 +893,25 @@
 			})
 			.catch(() => {
 				const settingsPanel = document.getElementById("pls-settings-panel");
+				const lastJoinPanel = document.getElementById("pls-last-join-panel");
 				const donationsPanel = document.getElementById("pls-donate-helper-panel");
 				const reachPanel = document.getElementById("pls-recent-donations");
 				
+				let nextTop = 56;
 				if (settingsPanel) {
-					settingsPanel.style.top = "56px";
+					settingsPanel.style.top = nextTop + "px";
 					settingsPanel.style.right = "16px";
 					settingsPanel.style.display = "block";
+					nextTop += (settingsPanel.offsetHeight || 120) + 8;
+				}
+				if (lastJoinPanel) {
+					lastJoinPanel.style.top = nextTop + "px";
+					lastJoinPanel.style.right = "16px";
+					lastJoinPanel.style.display = "block";
+					nextTop += (lastJoinPanel.offsetHeight || 80) + 8;
 				}
 				if (donationsPanel) {
-					const settingsHeight = settingsPanel ? (settingsPanel.offsetHeight || 120) : 0;
-					donationsPanel.style.top = (56 + settingsHeight + 8) + "px";
+					donationsPanel.style.top = nextTop + "px";
 					donationsPanel.style.right = "16px";
 					donationsPanel.style.display = "block";
 				}

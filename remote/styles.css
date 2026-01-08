@@ -79,6 +79,87 @@
 	font-size: 14px;
 }
 
+#pls-last-join-panel {
+	position: fixed;
+	min-width: 200px;
+	z-index: 2147483000;
+	box-sizing: border-box;
+	right: 16px;
+	left: auto;
+	background: var(--rbx-panel-bg, #fff);
+	border: 1px solid rgba(0,0,0,0.1);
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	display: none;
+}
+
+.pls-last-join-icon {
+	font-size: 14px;
+}
+
+.pls-last-join-card {
+	padding: 8px;
+}
+
+.pls-last-join-info {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.pls-last-join-donator {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pls-last-join-avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+.pls-last-join-name {
+	font-weight: 600;
+	font-size: 13px;
+	color: #1c1c1c;
+}
+
+.pls-last-join-display {
+	font-size: 11px;
+	color: #6b7280;
+}
+
+.pls-last-join-amount {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 10px;
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	border-radius: 6px;
+}
+
+.pls-last-join-amount .icon-robux-16x16 {
+	filter: brightness(0) invert(1);
+}
+
+.pls-last-join-amount .text-robux {
+	color: #fff;
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.pls-last-join-footer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+	font-size: 11px;
+	color: #6b7280;
+}
+
 #pls-settings-panel .pls-settings-content {
 	padding: 4px 8px 8px;
 }
@@ -708,10 +789,23 @@
 @media (prefers-color-scheme: dark) {
 	#pls-donate-helper-panel,
 	#pls-recent-donations,
-	#pls-settings-panel {
+	#pls-settings-panel,
+	#pls-last-join-panel {
 		background: #111318;
 		color: #e5e7eb;
 		border-color: rgba(255,255,255,0.08);
+	}
+	
+	.pls-last-join-name {
+		color: #e5e7eb;
+	}
+	
+	.pls-last-join-display {
+		color: #9ca3af;
+	}
+	
+	.pls-last-join-footer {
+		color: #9ca3af;
 	}
 	
 	#pls-donate-helper-panel .rbx-panel,
