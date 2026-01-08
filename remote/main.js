@@ -26,6 +26,7 @@
 	let mergedDonations = [];
 	let lastAutoJoinEntry = null;
 	let notificationAudio = null;
+	let clientCount = 0;
 
 	function loadSettings() {
 		try {
@@ -344,11 +345,20 @@
 						foundEntries = message.data.found.slice().reverse();
 						rebuildMergedDonations();
 					}
+					if (typeof message.data.clientCount === "number") {
+						clientCount = message.data.clientCount;
+						updateConnectionStatus(true);
+					}
 					renderDonationsPanel();
 					renderReachPanel();
 					setTimeout(() => {
 						lockPanelWidths();
 					}, 300);
+					break;
+				
+				case "socket_clientCount":
+					clientCount = message.count;
+					updateConnectionStatus(isConnected);
 					break;
 					
 				case "socket_reach":
@@ -392,9 +402,12 @@
 		const statusEl = document.getElementById("pls-connection-status");
 		if (statusEl) {
 			statusEl.className = connected ? "pls-status-connected" : "pls-status-disconnected";
-			statusEl.innerHTML = connected
-				? '<span class="pls-status-dot pls-dot-green"></span> Live'
-				: '<span class="pls-status-dot pls-dot-red"></span> Disconnected';
+			if (connected) {
+				const countText = clientCount > 0 ? ` (${clientCount})` : "";
+				statusEl.innerHTML = `<span class="pls-status-dot pls-dot-green"></span> Live${countText}`;
+			} else {
+				statusEl.innerHTML = '<span class="pls-status-dot pls-dot-red"></span> Disconnected';
+			}
 		}
 	}
 

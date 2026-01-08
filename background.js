@@ -63,6 +63,10 @@ function initSocket() {
 	socket.on("found", (entry) => {
 		broadcastToTabs({ type: "socket_found", entry });
 	});
+	
+	socket.on("clientCount", (count) => {
+		broadcastToTabs({ type: "socket_clientCount", count });
+	});
 }
 
 function broadcastToTabs(message) {
