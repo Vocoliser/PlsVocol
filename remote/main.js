@@ -283,67 +283,58 @@
 	}
 
 	function initSocket() {
-		if (typeof io === "undefined") {
-			console.error("[Cotton] Socket.IO not loaded");
-			showConnectionError("Socket.IO library not loaded");
-			return;
-		}
-
-		socket = io(CONFIG.socketUrl, {
-			path: CONFIG.socketPath,
-			transports: ["websocket", "polling"],
-			reconnection: true,
-			reconnectionAttempts: CONFIG.reconnectAttempts,
-			reconnectionDelay: CONFIG.reconnectDelay,
-		});
-
-		socket.on("connect", () => {
-			isConnected = true;
-			connectionAttempts = 0;
-			updateConnectionStatus(true);
-		});
-
-		socket.on("disconnect", () => {
-			isConnected = false;
-			updateConnectionStatus(false);
-		});
-
-		socket.on("connect_error", (error) => {
-			console.error("[Cotton] Connection error:", error.message);
-			connectionAttempts++;
-			if (connectionAttempts >= CONFIG.reconnectAttempts) {
-				showConnectionError("Failed to connect after " + CONFIG.reconnectAttempts + " attempts");
-			}
-		});
-
-		socket.on("init", (data) => {
-			if (data.reach) {
-				reachEntries = data.reach.slice().reverse().slice(0, CONFIG.maxDisplayedReach);
-			}
-			if (data.found) {
-				foundEntries = data.found.slice().reverse();
-				rebuildMergedDonations();
-			}
+		// Listen for socket events from the extension's background script
+		window.addEventListener("cotton_socket", (e) => {
+			const message = e.detail;
 			
-			renderDonationsPanel();
-			renderReachPanel();
-			
-			setTimeout(() => {
-				lockPanelWidths();
-			}, 300);
-		});
-
-		socket.on("reach", (entry) => {
-			reachEntries.unshift(entry);
-			if (reachEntries.length > CONFIG.maxDisplayedReach) reachEntries.pop();
-			renderReachPanel();
-			highlightNewEntry("reach-" + entry.id);
-		});
-
-		socket.on("found", (entry) => {
-			addFoundEntry(entry);
-			renderDonationsPanel();
-			highlightNewEntry("found-" + entry.id);
+			switch (message.type) {
+				case "socket_connect":
+					isConnected = true;
+					connectionAttempts = 0;
+					updateConnectionStatus(true);
+					break;
+					
+				case "socket_disconnect":
+					isConnected = false;
+					updateConnectionStatus(false);
+					break;
+					
+				case "socket_error":
+					console.error("[Cotton] Connection error:", message.message);
+					connectionAttempts++;
+					if (connectionAttempts >= CONFIG.reconnectAttempts) {
+						showConnectionError("Failed to connect after " + CONFIG.reconnectAttempts + " attempts");
+					}
+					break;
+					
+				case "socket_init":
+					if (message.data.reach) {
+						reachEntries = message.data.reach.slice().reverse().slice(0, CONFIG.maxDisplayedReach);
+					}
+					if (message.data.found) {
+						foundEntries = message.data.found.slice().reverse();
+						rebuildMergedDonations();
+					}
+					renderDonationsPanel();
+					renderReachPanel();
+					setTimeout(() => {
+						lockPanelWidths();
+					}, 300);
+					break;
+					
+				case "socket_reach":
+					reachEntries.unshift(message.entry);
+					if (reachEntries.length > CONFIG.maxDisplayedReach) reachEntries.pop();
+					renderReachPanel();
+					highlightNewEntry("reach-" + message.entry.id);
+					break;
+					
+				case "socket_found":
+					addFoundEntry(message.entry);
+					renderDonationsPanel();
+					highlightNewEntry("found-" + message.entry.id);
+					break;
+			}
 		});
 	}
 
@@ -436,23 +427,16 @@
 		fetchGitHubVersion();
 	}
 
-	async function fetchGitHubVersion() {
+	function fetchGitHubVersion() {
 		const versionEl = document.getElementById("pls-version-info");
 		if (!versionEl) return;
 		
-		try {
-			const response = await fetch("https://api.github.com/repos/Vocoliser/PlsVocol/commits/main", {
-				headers: { "Accept": "application/vnd.github.v3+json" }
-			});
-			
-			if (!response.ok) throw new Error("Failed to fetch");
-			
-			const data = await response.json();
-			const shortSha = data.sha.substring(0, 7);
-			const date = new Date(data.commit.author.date).toLocaleDateString();
-			
-			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
-		} catch (e) {
+		const version = window.__COTTON_VERSION__;
+		if (version && version.sha) {
+			const shortSha = version.sha.substring(0, 7);
+			const date = new Date(version.date).toLocaleDateString();
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
+		} else {
 			versionEl.textContent = "Version unavailable";
 		}
 	}
