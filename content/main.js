@@ -10,7 +10,7 @@
 		reconnectAttempts: 5,
 		reconnectDelay: 3000,
 		autoJoinEnabled: false,
-		autoJoinMinRobux: 0,
+		autoJoinMinRobux: 1000,
 		autoJoinGameFilters: ["Main"],
 		autoJoinSkipFull: false,
 	};
