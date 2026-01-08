@@ -9,6 +9,7 @@
 		autoJoinMinRobux: 1000,
 		autoJoinGameFilters: ["Main"],
 		autoJoinSkipFull: false,
+		autoJoinMuted: false,
 	};
 
 	const GameName = {
@@ -37,6 +38,7 @@
 				if (typeof parsed.autoJoinMinRobux === 'number') CONFIG.autoJoinMinRobux = parsed.autoJoinMinRobux;
 				if (Array.isArray(parsed.autoJoinGameFilters)) CONFIG.autoJoinGameFilters = parsed.autoJoinGameFilters;
 				if (typeof parsed.autoJoinSkipFull === 'boolean') CONFIG.autoJoinSkipFull = parsed.autoJoinSkipFull;
+				if (typeof parsed.autoJoinMuted === 'boolean') CONFIG.autoJoinMuted = parsed.autoJoinMuted;
 			}
 		} catch (e) {
 			console.error("[Cotton] Failed to load settings:", e);
@@ -52,7 +54,8 @@
 				autoJoinEnabled: CONFIG.autoJoinEnabled,
 				autoJoinMinRobux: CONFIG.autoJoinMinRobux,
 				autoJoinGameFilters: CONFIG.autoJoinGameFilters,
-				autoJoinSkipFull: CONFIG.autoJoinSkipFull
+				autoJoinSkipFull: CONFIG.autoJoinSkipFull,
+				autoJoinMuted: CONFIG.autoJoinMuted
 			}));
 		} catch (e) {
 			console.error("[Cotton] Failed to save settings:", e);
@@ -266,7 +269,18 @@
 		lastAutoJoinEntry = entry;
 		renderLastJoinPanel();
 		
+		playAutoJoinSound();
+		
 		joinServer(entry.placeId, entry.serverId);
+	}
+
+	function playAutoJoinSound() {
+		if (CONFIG.autoJoinMuted) return;
+		try {
+			const audio = new Audio(chrome.runtime.getURL("sound.ogg"));
+			audio.volume = 0.5;
+			audio.play().catch(() => {});
+		} catch (e) {}
 	}
 
 	function joinServer(placeId, serverId) {
@@ -407,6 +421,13 @@
 						<span class="pls-toggle-slider"></span>
 					</label>
 				</div>
+				<div class="pls-setting-row">
+					<label for="pls-mute-sound">Mute sound</label>
+					<label class="pls-toggle">
+						<input type="checkbox" id="pls-mute-sound" ${CONFIG.autoJoinMuted ? 'checked' : ''}>
+						<span class="pls-toggle-slider"></span>
+					</label>
+				</div>
 				<div class="pls-setting-section-title">Game Filters (empty = all)</div>
 				<div class="pls-game-filters">
 					${gameCheckboxes}
@@ -535,6 +556,14 @@
 				saveSettings();
 			});
 		});
+
+		const muteSoundToggle = document.getElementById("pls-mute-sound");
+		if (muteSoundToggle) {
+			muteSoundToggle.addEventListener("change", (e) => {
+				CONFIG.autoJoinMuted = e.target.checked;
+				saveSettings();
+			});
+		}
 	}
 
 	function updateAutoJoinButton() {
@@ -854,6 +883,7 @@
 			
 			renderDonationsPanel();
 			renderReachPanel();
+			renderLastJoinPanel();
 		}, 1000);
 	}
 

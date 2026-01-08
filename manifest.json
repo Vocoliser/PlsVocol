@@ -30,7 +30,7 @@
 	],
 	"web_accessible_resources": [
 		{
-			"resources": ["remote/*"],
+			"resources": ["remote/*", "sound.ogg"],
 			"matches": ["https://www.roblox.com/*", "https://web.roblox.com/*"]
 		}
 	]

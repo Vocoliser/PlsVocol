@@ -81,7 +81,8 @@
 
 #pls-last-join-panel {
 	position: fixed;
-	min-width: 200px;
+	width: auto;
+	min-width: 300px;
 	z-index: 2147483000;
 	box-sizing: border-box;
 	right: 16px;
