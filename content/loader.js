@@ -1,6 +1,13 @@
 (() => {
 	"use strict";
 
+	// Listen for socket events from background and relay to page
+	chrome.runtime.onMessage.addListener((message) => {
+		if (message.type && message.type.startsWith("socket_")) {
+			window.dispatchEvent(new CustomEvent("cotton_socket", { detail: message }));
+		}
+	});
+
 	function loadRemoteCode() {
 		chrome.runtime.sendMessage({ type: "loadRemoteCode" }, (response) => {
 			if (chrome.runtime.lastError) {
