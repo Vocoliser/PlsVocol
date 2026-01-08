@@ -1,5 +1,6 @@
+importScripts("socket.io.min.js");
+
 const REPO = "Vocoliser/PlsVocol";
-const SOCKETIO_CDN = "https://cdn.socket.io/4.7.2/socket.io.min.js";
 const SOCKET_URL = "https://plsbrainrot.me";
 const SOCKET_PATH = "/cotton/socket";
 
@@ -21,12 +22,8 @@ async function fetchRemote(url) {
 	return response.text();
 }
 
-async function initSocket() {
+function initSocket() {
 	if (socket) return;
-	
-	// Import socket.io-client
-	const socketioCode = await fetchRemote(SOCKETIO_CDN);
-	eval(socketioCode);
 	
 	socket = io(SOCKET_URL, {
 		path: SOCKET_PATH,
@@ -113,7 +110,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				});
 				
 				// Initialize socket connection
-				await initSocket();
+				initSocket();
 				
 				// Send current socket state
 				if (socket && socket.connected) {
