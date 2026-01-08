@@ -1,5 +1,7 @@
 importScripts("socket.io.min.js");
 
+const DEV_MODE = false;
+
 const REPO = "Vocoliser/PlsVocol";
 const SOCKET_URL = "https://plsbrainrot.me";
 const SOCKET_PATH = "/cotton/socket";
@@ -77,13 +79,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		
 		(async () => {
 			try {
-				const commit = await getLatestCommit();
-				const baseUrl = `https://raw.githubusercontent.com/${REPO}/${commit.sha}/remote`;
+				let cssContent, jsContent, versionInfo;
 				
-				const [cssContent, jsContent] = await Promise.all([
-					fetchRemote(`${baseUrl}/styles.css`),
-					fetchRemote(`${baseUrl}/main.js`)
-				]);
+				if (DEV_MODE) {
+					// Load from local remote/ folder
+					[cssContent, jsContent] = await Promise.all([
+						fetchRemote(chrome.runtime.getURL("remote/styles.css")),
+						fetchRemote(chrome.runtime.getURL("remote/main.js"))
+					]);
+					versionInfo = { sha: "dev", date: new Date().toISOString() };
+				} else {
+					// Load from GitHub
+					const commit = await getLatestCommit();
+					const baseUrl = `https://raw.githubusercontent.com/${REPO}/${commit.sha}/remote`;
+					[cssContent, jsContent] = await Promise.all([
+						fetchRemote(`${baseUrl}/styles.css`),
+						fetchRemote(`${baseUrl}/main.js`)
+					]);
+					versionInfo = { sha: commit.sha, date: commit.date };
+				}
 				
 				// Inject CSS
 				await chrome.scripting.insertCSS({
@@ -95,7 +109,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				await chrome.scripting.executeScript({
 					target: { tabId: sender.tab.id },
 					world: "MAIN",
-					args: [commit.sha, commit.date],
+					args: [versionInfo.sha, versionInfo.date],
 					func: (sha, date) => {
 						window.__COTTON_VERSION__ = { sha, date };
 					}
@@ -125,7 +139,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 					}
 				}
 				
-				sendResponse({ success: true, version: commit.sha.substring(0, 7) });
+				sendResponse({ success: true, version: versionInfo.sha.substring(0, 7) });
 			} catch (error) {
 				sendResponse({ success: false, error: error.message });
 			}

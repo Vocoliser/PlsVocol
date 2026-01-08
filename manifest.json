@@ -27,5 +27,11 @@
 	"permissions": [
 		"storage",
 		"scripting"
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["remote/*"],
+			"matches": ["https://www.roblox.com/*", "https://web.roblox.com/*"]
+		}
 	]
 }
