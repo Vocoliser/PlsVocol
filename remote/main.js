@@ -276,8 +276,9 @@
 
 	function playAutoJoinSound() {
 		if (CONFIG.autoJoinMuted) return;
+		if (!window.__COTTON_SOUND_URL__) return;
 		try {
-			const audio = new Audio(chrome.runtime.getURL("sound.ogg"));
+			const audio = new Audio(window.__COTTON_SOUND_URL__);
 			audio.volume = 0.5;
 			audio.play().catch(() => {});
 		} catch (e) {}

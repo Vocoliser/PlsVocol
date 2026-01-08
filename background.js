@@ -105,13 +105,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 					css: cssContent
 				});
 				
-				// Inject version info
+				// Inject version info and sound URL
+				const soundUrl = chrome.runtime.getURL("sound.ogg");
 				await chrome.scripting.executeScript({
 					target: { tabId: sender.tab.id },
 					world: "MAIN",
-					args: [versionInfo.sha, versionInfo.date],
-					func: (sha, date) => {
+					args: [versionInfo.sha, versionInfo.date, soundUrl],
+					func: (sha, date, sound) => {
 						window.__COTTON_VERSION__ = { sha, date };
+						window.__COTTON_SOUND_URL__ = sound;
 					}
 				});
 				
