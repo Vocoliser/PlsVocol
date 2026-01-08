@@ -520,6 +520,7 @@
 					<span>${timeAgo}</span>
 					${gameBadge}
 					<span class="pls-server-id">${entry.serverId.substring(0, 8)}</span>
+					<button class="pls-join-btn" data-place-id="${entry.placeId}" data-server-id="${escapeHtml(entry.serverId)}" title="Rejoin this server">Rejoin</button>
 				</div>
 			</div>
 		`;
@@ -591,6 +592,21 @@
 				saveSettings();
 			});
 		}
+	}
+
+	function initJoinButtons() {
+		// Use event delegation on document body for join buttons
+		document.body.addEventListener("click", (e) => {
+			const joinBtn = e.target.closest(".pls-join-btn");
+			if (!joinBtn) return;
+			
+			const placeId = joinBtn.dataset.placeId;
+			const serverId = joinBtn.dataset.serverId;
+			
+			if (placeId && serverId) {
+				joinServer(placeId, serverId);
+			}
+		});
 	}
 
 	function updateAutoJoinButton() {
@@ -709,6 +725,7 @@
 							${gameBadge}
 							<span class="pls-server-id">${entry.serverId.substring(0, 8)}</span>
 							${playerAmountHtml}
+							<button class="pls-join-btn" data-place-id="${entry.placeId}" data-server-id="${escapeHtml(entry.serverId)}" title="Join this server">Join</button>
 						</div>
 					</div>
 				</div>
@@ -923,6 +940,7 @@
 		createReachPanel();
 
 		initSocket();
+		initJoinButtons();
 
 		startTimeUpdater();
 

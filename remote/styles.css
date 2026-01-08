@@ -600,6 +600,31 @@
 	border-radius: 3px;
 }
 
+.pls-join-btn {
+	margin-left: auto;
+	padding: 3px 10px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.pls-join-btn:hover {
+	background: linear-gradient(135deg, #059669 0%, #047857 100%);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.pls-join-btn:active {
+	transform: translateY(0);
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
 #pls-recent-donations .list-body.text-right {
 	text-align: right;
 }
@@ -882,6 +907,19 @@
 	.pls-player-count {
 		background: #1f2937;
 		color: #9ca3af;
+	}
+	
+	.pls-server-id {
+		background: #1f2937;
+		color: #6b7280;
+	}
+	
+	.pls-join-btn {
+		box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+	}
+	
+	.pls-join-btn:hover {
+		box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 	}
 	
 	.pls-autojoin-btn {
