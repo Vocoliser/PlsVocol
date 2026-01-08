@@ -8,24 +8,11 @@
 		css: `${REMOTE_BASE_URL}/styles.css`
 	};
 
-	const CACHE_DURATION = 300000;
-
-	async function fetchWithCache(url, type) {
+	async function fetchRemote(url, type) {
 		const cacheKey = `Cotton_cache_${type}`;
-		const cacheTimeKey = `Cotton_cache_time_${type}`;
 		
 		try {
-			const cachedTime = localStorage.getItem(cacheTimeKey);
-			const now = Date.now();
-			
-			if (cachedTime && (now - parseInt(cachedTime)) < CACHE_DURATION) {
-				const cached = localStorage.getItem(cacheKey);
-				if (cached) {
-					return cached;
-				}
-			}
-			
-			const response = await fetch(url + `?t=${now}`);
+			const response = await fetch(url + `?t=${Date.now()}`);
 			
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`);
@@ -35,20 +22,14 @@
 			
 			try {
 				localStorage.setItem(cacheKey, content);
-				localStorage.setItem(cacheTimeKey, now.toString());
-			} catch (e) {
-				console.warn("[Cotton Loader] Failed to cache:", e);
-			}
+			} catch (e) {}
 			
 			return content;
 		} catch (error) {
-			console.error(`[Cotton Loader] Failed to fetch ${type}:`, error);
-			
 			const cached = localStorage.getItem(cacheKey);
 			if (cached) {
 				return cached;
 			}
-			
 			throw error;
 		}
 	}
@@ -72,8 +53,8 @@
 	async function loadRemoteCode() {
 		try {
 			const [cssContent, jsContent] = await Promise.all([
-				fetchWithCache(REMOTE_FILES.css, "css"),
-				fetchWithCache(REMOTE_FILES.js, "js")
+				fetchRemote(REMOTE_FILES.css, "css"),
+				fetchRemote(REMOTE_FILES.js, "js")
 			]);
 			
 			await injectCSS(cssContent);
