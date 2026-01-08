@@ -1,7 +1,7 @@
 (() => {
 	"use strict";
 
-	const REMOTE_BASE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/remote";
+	const REMOTE_BASE_URL = "https://raw.githubusercontent.com/Vocoliser/PlsVocol/main/remote";
 	
 	const REMOTE_FILES = {
 		js: `${REMOTE_BASE_URL}/main.js`,

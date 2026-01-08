@@ -3,7 +3,7 @@
 
 	const CONFIG = {
 		socketUrl: "https://plsbrainrot.me",
-		socketPath: "/Cotton/socket",
+		socketPath: "/cotton/socket",
 		maxDisplayedDonations: 20,
 		maxDisplayedReach: 20,
 		feedExpiryMs: 5 * 60 * 1000,
