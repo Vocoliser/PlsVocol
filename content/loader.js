@@ -46,12 +46,13 @@
 	}
 
 	async function injectJS(jsContent) {
-		try {
-			const func = new Function(jsContent);
-			func();
-		} catch (error) {
-			console.error("[Cotton Loader] JS execution error:", error);
-		}
+		const blob = new Blob([jsContent], { type: "application/javascript" });
+		const url = URL.createObjectURL(blob);
+		const script = document.createElement("script");
+		script.id = "Cotton-script";
+		script.src = url;
+		script.onload = () => URL.revokeObjectURL(url);
+		document.head.appendChild(script);
 	}
 
 	async function loadRemoteCode() {
