@@ -271,7 +271,7 @@
 			return;
 		}
 		
-		const joinUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+		const joinUrl = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${serverId}`;
 		
 		window.location.replace(joinUrl);
 	}
