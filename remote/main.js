@@ -427,11 +427,34 @@
 				<div class="pls-game-filters">
 					${gameCheckboxes}
 				</div>
+				<div id="pls-version-info" class="pls-version-info">Loading version...</div>
 			</div>
 		`;
 
 		document.body.appendChild(panel);
 		initSettingsListeners();
+		fetchGitHubVersion();
+	}
+
+	async function fetchGitHubVersion() {
+		const versionEl = document.getElementById("pls-version-info");
+		if (!versionEl) return;
+		
+		try {
+			const response = await fetch("https://api.github.com/repos/Vocoliser/PlsVocol/commits/main", {
+				headers: { "Accept": "application/vnd.github.v3+json" }
+			});
+			
+			if (!response.ok) throw new Error("Failed to fetch");
+			
+			const data = await response.json();
+			const shortSha = data.sha.substring(0, 7);
+			const date = new Date(data.commit.author.date).toLocaleDateString();
+			
+			versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${data.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
+		} catch (e) {
+			versionEl.textContent = "Version unavailable";
+		}
 	}
 
 	function initSettingsListeners() {

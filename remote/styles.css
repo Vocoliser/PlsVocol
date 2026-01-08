@@ -285,6 +285,20 @@
 	border-color: #10b981;
 }
 
+.pls-version-info {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(0,0,0,0.08);
+	font-size: 10px;
+	color: #9ca3af;
+	text-align: center;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.pls-version-info a:hover {
+	text-decoration: underline !important;
+}
+
 .pls-panel-title {
 	font-size: 14px;
 	font-weight: 700;
@@ -783,6 +797,11 @@
 	.pls-game-checkbox:has(input:checked) {
 		background: #065f46;
 		border-color: #10b981;
+	}
+	
+	.pls-version-info {
+		border-top-color: rgba(255,255,255,0.08);
+		color: #6b7280;
 	}
 	
 	#pls-donate-helper-panel .rbx-panel-heading { background: #171a20; }
