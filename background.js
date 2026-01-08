@@ -1,4 +1,5 @@
 const REPO = "Vocoliser/PlsVocol";
+const SOCKETIO_CDN = "https://cdn.socket.io/4.7.2/socket.io.min.js";
 
 async function getLatestCommitSha() {
 	const response = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
@@ -22,15 +23,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				const sha = await getLatestCommitSha();
 				const baseUrl = `https://raw.githubusercontent.com/${REPO}/${sha}/remote`;
 				
-				const [cssContent, jsContent] = await Promise.all([
+				const [cssContent, jsContent, socketioContent] = await Promise.all([
 					fetchRemote(`${baseUrl}/styles.css`),
-					fetchRemote(`${baseUrl}/main.js`)
+					fetchRemote(`${baseUrl}/main.js`),
+					fetchRemote(SOCKETIO_CDN)
 				]);
 				
 				// Inject CSS
 				await chrome.scripting.insertCSS({
 					target: { tabId: sender.tab.id },
 					css: cssContent
+				});
+				
+				// Inject Socket.IO first
+				await chrome.scripting.executeScript({
+					target: { tabId: sender.tab.id },
+					world: "MAIN",
+					args: [socketioContent],
+					func: (code) => {
+						const script = document.createElement("script");
+						script.textContent = code;
+						document.head.appendChild(script);
+						script.remove();
+					}
 				});
 				
 				// Inject version info
@@ -43,7 +58,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 					}
 				});
 				
-				// Inject JS
+				// Inject main JS
 				await chrome.scripting.executeScript({
 					target: { tabId: sender.tab.id },
 					world: "MAIN",

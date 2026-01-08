@@ -12,7 +12,7 @@
 				"https://www.roblox.com/games/8737602449/PLS-DONATE*",
 				"https://web.roblox.com/games/8737602449/PLS-DONATE*"
 			],
-			"js": ["content/socket.io.min.js", "content/loader.js"],
+			"js": ["content/loader.js"],
 			"run_at": "document_idle"
 		}
 	],
