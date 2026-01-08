@@ -6,6 +6,7 @@ const SOCKET_PATH = "/cotton/socket";
 
 let socket = null;
 let connectedTabs = new Set();
+let cachedInitData = null;
 
 async function getLatestCommit() {
 	const response = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {
@@ -49,6 +50,7 @@ function initSocket() {
 	});
 	
 	socket.on("init", (data) => {
+		cachedInitData = data;
 		broadcastToTabs({ type: "socket_init", data });
 	});
 	
@@ -115,9 +117,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 				// Initialize socket connection
 				initSocket();
 				
-				// Send current socket state
+				// Send current socket state and cached data to new tab
 				if (socket && socket.connected) {
 					chrome.tabs.sendMessage(sender.tab.id, { type: "socket_connect", id: socket.id });
+					if (cachedInitData) {
+						chrome.tabs.sendMessage(sender.tab.id, { type: "socket_init", data: cachedInitData });
+					}
 				}
 				
 				sendResponse({ success: true, version: commit.sha.substring(0, 7) });

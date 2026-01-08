@@ -2,13 +2,9 @@
 	"use strict";
 
 	const CONFIG = {
-		socketUrl: "https://plsbrainrot.me",
-		socketPath: "/cotton/socket",
 		maxDisplayedDonations: 20,
 		maxDisplayedReach: 20,
 		feedExpiryMs: 5 * 60 * 1000,
-		reconnectAttempts: 5,
-		reconnectDelay: 3000,
 		autoJoinEnabled: false,
 		autoJoinMinRobux: 1000,
 		autoJoinGameFilters: ["Main"],
@@ -23,12 +19,10 @@
 		"18852429314": "17+"
 	};
 
-	let socket = null;
 	let isConnected = false;
 	let reachEntries = [];
 	let foundEntries = [];
 	let mergedDonations = [];
-	let connectionAttempts = 0;
 
 	function loadSettings() {
 		try {
@@ -290,7 +284,6 @@
 			switch (message.type) {
 				case "socket_connect":
 					isConnected = true;
-					connectionAttempts = 0;
 					updateConnectionStatus(true);
 					break;
 					
@@ -301,10 +294,6 @@
 					
 				case "socket_error":
 					console.error("[Cotton] Connection error:", message.message);
-					connectionAttempts++;
-					if (connectionAttempts >= CONFIG.reconnectAttempts) {
-						showConnectionError("Failed to connect after " + CONFIG.reconnectAttempts + " attempts");
-					}
 					break;
 					
 				case "socket_init":
