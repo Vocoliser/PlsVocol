@@ -273,7 +273,7 @@
 		
 		const joinUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${serverId}`;
 		
-		window.location.href = joinUrl;
+		window.location.replace(joinUrl);
 	}
 
 	function initSocket() {
