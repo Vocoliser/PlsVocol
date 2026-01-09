@@ -27,6 +27,106 @@
 	let lastAutoJoinEntry = null;
 	let notificationAudio = null;
 	let clientCount = 0;
+	let userData = null;
+
+	const DISCORD_CLIENT_ID = "1096363011524018256";
+	const DISCORD_REDIRECT_URI = "https://fern.wtf/api/auth";
+	const DISCORD_SCOPES = "identify guilds guilds.join";
+
+	function isLoggedIn() {
+		const token = localStorage.getItem("Cotton_auth_token");
+		return !!token;
+	}
+
+	function getAuthToken() {
+		return localStorage.getItem("Cotton_auth_token");
+	}
+
+	function saveLogin(token) {
+		localStorage.setItem("Cotton_auth_token", token);
+	}
+
+	function logout() {
+		localStorage.removeItem("Cotton_auth_token");
+		showLoginPopup();
+	}
+
+	function showAuthError(message) {
+		const loginBody = document.querySelector(".pls-login-body");
+		if (!loginBody) return;
+
+		const existing = document.getElementById("pls-auth-error");
+		if (existing) existing.remove();
+
+		const errorDiv = document.createElement("div");
+		errorDiv.id = "pls-auth-error";
+		errorDiv.className = "pls-auth-error";
+		errorDiv.innerHTML = `
+			<span class="pls-auth-error-icon">⚠️</span>
+			<span class="pls-auth-error-text">${escapeHtml(message)}</span>
+		`;
+		
+		loginBody.insertBefore(errorDiv, loginBody.firstChild);
+	}
+
+	function getDiscordAuthUrl() {
+		const params = new URLSearchParams({
+			client_id: DISCORD_CLIENT_ID,
+			redirect_uri: DISCORD_REDIRECT_URI,
+			response_type: "code",
+			scope: DISCORD_SCOPES,
+			state: btoa(JSON.stringify({ cotton: true }))
+		});
+		return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+	}
+
+	function showLoginPopup() {
+		const existing = document.getElementById("pls-login-overlay");
+		if (existing) existing.remove();
+
+		const overlay = document.createElement("div");
+		overlay.id = "pls-login-overlay";
+		overlay.innerHTML = `
+			<div class="rbx-panel rbx-panel-default pls-login-modal">
+				<div class="rbx-panel-body pls-login-body">
+					<p class="text-lead pls-login-title">Sign in to Pls Cotton</p>
+					<p class="text-description pls-login-desc">:p</p>
+					<button id="pls-discord-login-btn" class="pls-discord-btn">
+						<svg class="pls-discord-icon" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+						</svg>
+						Login with Discord
+					</button>
+				</div>
+			</div>
+		`;
+
+		document.body.appendChild(overlay);
+
+		document.getElementById("pls-discord-login-btn").addEventListener("click", () => {
+			window.open(getDiscordAuthUrl(), "_blank", "width=500,height=700");
+		});
+	}
+
+	function hideLoginPopup() {
+		const overlay = document.getElementById("pls-login-overlay");
+		if (overlay) overlay.remove();
+	}
+
+	function connectSocket() {
+		const authToken = getAuthToken();
+		window.dispatchEvent(new CustomEvent("cotton_connect_socket", { 
+			detail: { authToken } 
+		}));
+	}
+
+	window.addEventListener("message", (event) => {
+		if (event.data && event.data.type === "COTTON_AUTH_SUCCESS") {
+			const { token } = event.data;
+			saveLogin(token);
+			connectSocket();
+		}
+	});
 
 	function loadSettings() {
 		try {
@@ -318,7 +418,6 @@
 	}
 
 	function initSocket() {
-		// Listen for socket events from the extension's background script
 		window.addEventListener("cotton_socket", (e) => {
 			const message = e.detail;
 			
@@ -326,6 +425,10 @@
 				case "socket_connect":
 					isConnected = true;
 					updateConnectionStatus(true);
+					hideLoginPopup();
+					if (!document.getElementById("pls-donate-helper-panel")) {
+						initAfterLogin();
+					}
 					break;
 					
 				case "socket_disconnect":
@@ -335,6 +438,10 @@
 					
 				case "socket_error":
 					console.error("[Cotton] Connection error:", message.message);
+					if (message.message && message.message.includes("Not authenticated")) {
+						logout();
+						showAuthError(message.message);
+					}
 					break;
 					
 				case "socket_init":
@@ -348,6 +455,10 @@
 					if (typeof message.data.clientCount === "number") {
 						clientCount = message.data.clientCount;
 						updateConnectionStatus(true);
+					}
+					if (message.data.userData) {
+						userData = message.data.userData;
+						renderUserInfoPanel();
 					}
 					renderDonationsPanel();
 					renderReachPanel();
@@ -376,7 +487,6 @@
 			}
 		});
 		
-		// Listen for version check results
 		window.addEventListener("cotton_version_result", (e) => {
 			const latestSha = e.detail.sha;
 			if (latestSha && currentVersionSha && latestSha !== currentVersionSha && latestSha !== "LOCAL") {
@@ -547,6 +657,72 @@
 		`;
 	}
 
+	function createUserInfoPanel() {
+		if (document.getElementById("pls-user-info-panel")) return;
+
+		const panel = document.createElement("aside");
+		panel.id = "pls-user-info-panel";
+		panel.setAttribute("role", "complementary");
+
+		panel.innerHTML = `
+			<div class="pls-panel-header">
+				<div class="pls-panel-title">
+					<span class="pls-user-icon">👤</span>
+					Account
+				</div>
+			</div>
+			<div id="pls-user-info-content" class="pls-panel-content">
+				<div class="pls-empty">Loading...</div>
+			</div>
+		`;
+
+		document.body.appendChild(panel);
+	}
+
+	function renderUserInfoPanel() {
+		const container = document.getElementById("pls-user-info-content");
+		if (!container) return;
+
+		if (!userData) {
+			container.innerHTML = '<div class="pls-empty">Not loaded</div>';
+			return;
+		}
+
+		const expireTimestamp = userData.expireDate ? parseInt(userData.expireDate, 10) : null;
+		const expireDate = expireTimestamp ? new Date(expireTimestamp) : null;
+		const isExpired = expireDate && expireDate < new Date();
+		const daysLeft = expireDate ? Math.ceil((expireDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
+		
+		let statusText = "";
+		let statusClass = "";
+		if (!expireDate) {
+			statusText = "No subscription";
+			statusClass = "pls-status-none";
+		} else if (isExpired) {
+			statusText = "Expired";
+			statusClass = "pls-status-expired";
+		} else if (daysLeft <= 3) {
+			statusText = `${daysLeft}d left`;
+			statusClass = "pls-status-warning";
+		} else {
+			statusText = `${daysLeft}d left`;
+			statusClass = "pls-status-active";
+		}
+
+		container.innerHTML = `
+			<div class="pls-user-info-card">
+				<div class="pls-user-info-row">
+					<span class="pls-user-label">User</span>
+					<span class="pls-user-value">@${escapeHtml(userData.username || 'Unknown')}</span>
+				</div>
+				<div class="pls-user-info-row">
+					<span class="pls-user-label">Status</span>
+					<span class="pls-user-status ${statusClass}">${statusText}</span>
+				</div>
+			</div>
+		`;
+	}
+
 	let currentVersionSha = null;
 	
 	function fetchGitHubVersion() {
@@ -563,7 +739,6 @@
 				const date = new Date(version.date).toLocaleDateString();
 				versionEl.innerHTML = `<a href="https://github.com/Vocoliser/PlsVocol/commit/${version.sha}" target="_blank" style="color: inherit; text-decoration: none;">v${shortSha}</a> • ${date}`;
 			}
-			// Start version check interval (every 1 minute)
 			startVersionChecker();
 		} else {
 			versionEl.textContent = "Version unavailable";
@@ -575,13 +750,12 @@
 		
 		setInterval(() => {
 			checkForUpdate();
-		}, 60 * 1000); // 1 minute
+		}, 60 * 1000);
 	}
 	
 	function checkForUpdate() {
 		if (!currentVersionSha || currentVersionSha === "LOCAL") return;
 		
-		// Send message to background script to check latest version
 		window.dispatchEvent(new CustomEvent("cotton_check_version"));
 	}
 	
@@ -589,7 +763,6 @@
 		const versionEl = document.getElementById("pls-version-info");
 		if (!versionEl) return;
 		
-		// Don't add again if already showing
 		if (versionEl.querySelector(".pls-update-notice")) return;
 		
 		const updateNotice = document.createElement("span");
@@ -610,7 +783,6 @@
 				saveSettings();
 				updateAutoJoinButton();
 				
-				// Unlock audio on user interaction so notification can play later
 				if (CONFIG.autoJoinEnabled) {
 					unlockAudio();
 				}
@@ -653,7 +825,6 @@
 	}
 
 	function initJoinButtons() {
-		// Use event delegation on document body for join buttons
 		document.body.addEventListener("click", (e) => {
 			const joinBtn = e.target.closest(".pls-join-btn");
 			if (!joinBtn) return;
@@ -869,13 +1040,16 @@
 	function placeSettingsPanel(nextToSelector) {
 		const settingsPanel = document.getElementById("pls-settings-panel");
 		const lastJoinPanel = document.getElementById("pls-last-join-panel");
+		const userInfoPanel = document.getElementById("pls-user-info-panel");
 		const donationsPanel = document.getElementById("pls-donate-helper-panel");
 		if (!settingsPanel || !donationsPanel) return;
 
 		const gap = 8;
 
 		function repositionSettings() {
-			settingsPanel.style.left = donationsPanel.style.left;
+			const baseLeft = parseInt(donationsPanel.style.left) || 16;
+			
+			settingsPanel.style.left = baseLeft + "px";
 			settingsPanel.style.right = "auto";
 			settingsPanel.style.top = "56px";
 			settingsPanel.style.display = "block";
@@ -883,14 +1057,32 @@
 			const settingsHeight = settingsPanel.offsetHeight || 120;
 			let nextTop = 56 + settingsHeight + gap;
 			
+			const panelWidth = donationsPanel.offsetWidth || 300;
+			const halfWidth = Math.floor((panelWidth - gap) / 2);
+			
 			if (lastJoinPanel) {
-				lastJoinPanel.style.left = donationsPanel.style.left;
+				lastJoinPanel.style.left = baseLeft + "px";
 				lastJoinPanel.style.right = "auto";
 				lastJoinPanel.style.top = nextTop + "px";
+				lastJoinPanel.style.width = halfWidth + "px";
+				lastJoinPanel.style.minWidth = "auto";
 				lastJoinPanel.style.display = "block";
-				const lastJoinHeight = lastJoinPanel.offsetHeight || 80;
-				nextTop += lastJoinHeight + gap;
 			}
+			
+			if (userInfoPanel) {
+				userInfoPanel.style.left = (baseLeft + halfWidth + gap) + "px";
+				userInfoPanel.style.right = "auto";
+				userInfoPanel.style.top = nextTop + "px";
+				userInfoPanel.style.width = halfWidth + "px";
+				userInfoPanel.style.minWidth = "auto";
+				userInfoPanel.style.display = "block";
+			}
+			
+			const rowHeight = Math.max(
+				lastJoinPanel?.offsetHeight || 80,
+				userInfoPanel?.offsetHeight || 80
+			);
+			nextTop += rowHeight + gap;
 			
 			donationsPanel.style.top = nextTop + "px";
 		}
@@ -989,15 +1181,84 @@
 		}, 1000);
 	}
 
+	function checkMinVersion() {
+		const minVersion = window.__COTTON_MIN_VERSION__;
+		const currentVersion = window.__COTTON_VERSION__;
+		
+		if (!minVersion || !minVersion.minVersionDate || !currentVersion || !currentVersion.date) {
+			return true;
+		}
+		
+		const minDate = new Date(minVersion.minVersionDate).getTime();
+		const currentDate = new Date(currentVersion.date).getTime();
+		
+		if (currentDate < minDate) {
+			showReinstallRequired(minVersion.minVersionMessage);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	function showReinstallRequired(message) {
+		const overlay = document.createElement("div");
+		overlay.id = "pls-reinstall-overlay";
+		overlay.innerHTML = `
+			<div class="rbx-panel rbx-panel-default pls-reinstall-modal">
+				<div class="rbx-panel-heading pls-reinstall-header">
+					<span class="pls-reinstall-icon">⚠️</span>
+					<h4 class="rbx-panel-title">Pls Cotton Update Required</h4>
+				</div>
+				<div class="rbx-panel-body">
+					<p class="text-description pls-reinstall-message">${escapeHtml(message || "A critical update requires you to reinstall the extension.")}</p>
+					<div class="pls-reinstall-steps">
+						<div class="pls-reinstall-step">
+							<span class="pls-step-number">1</span>
+							<span class="text-default">Remove the current extension from Chrome</span>
+						</div>
+						<div class="pls-reinstall-step">
+							<span class="pls-step-number">2</span>
+							<span class="text-default">Download the latest version from Discord server</span>
+						</div>
+						<div class="pls-reinstall-step">
+							<span class="pls-step-number">3</span>
+							<span class="text-default">Reinstall the extension</span>
+						</div>
+					</div>
+					<a href="https://discord.com/channels/1311356252588212295/1458899917350375639/1459141476918497290" target="_blank" class="btn-primary-md pls-reinstall-btn">
+						Go to Download
+					</a>
+				</div>
+			</div>
+		`;
+		
+		document.body.appendChild(overlay);
+	}
+
 	function init() {
+		if (!checkMinVersion()) {
+			return;
+		}
+		
+		initSocket();
+		
+		if (!isLoggedIn()) {
+			showLoginPopup();
+			return;
+		}
+		
+		connectSocket();
+	}
+
+	function initAfterLogin() {
 		loadSettings();
 
 		createSettingsPanel();
 		createLastJoinPanel();
+		createUserInfoPanel();
 		createDonationsPanel();
 		createReachPanel();
 
-		initSocket();
 		initJoinButtons();
 
 		startTimeUpdater();

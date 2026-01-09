@@ -5,7 +5,7 @@
 	chrome.runtime.onMessage.addListener((message) => {
 		if (message.type && message.type.startsWith("socket_")) {
 			window.dispatchEvent(new CustomEvent("cotton_socket", { detail: message }));
-		}
+				}
 	});
 
 	// Listen for version check requests from page and relay to background
@@ -18,6 +18,12 @@
 				}));
 			}
 		});
+	});
+
+	// Listen for socket connect requests from page (after login)
+	window.addEventListener("cotton_connect_socket", (e) => {
+		const authToken = e.detail?.authToken;
+		chrome.runtime.sendMessage({ type: "connectSocket", authToken });
 	});
 
 	function loadRemoteCode() {
